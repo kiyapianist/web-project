@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Tour - Atlas University</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        #panorama-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .scene-nav {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 25px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn {
+            background: #1a365d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background: #2b6cb0;
+            transform: translateY(-2px);
+        }
+
+        .scene-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #1a365d;
+        }
+    </style>
+</head>
+<body>
+    <div id="panorama-container"></div>
+    
+    <div class="scene-nav">
+        <button class="nav-btn" onclick="prevScene()">← Previous</button>
+        <button class="nav-btn" onclick="nextScene()">Next →</button>
+    </div>
+
+    <div class="scene-indicator" id="sceneName">Main Quad</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <script>
+        const scenes = {
+            mainQuad: {
+                name: "Main Quadrangle",
+                image: "pictures/pexels-solyartphotos-19833793.jpg",
+                hotspots: [
+                    {
+                        pitch: -14,
+                        yaw: 120,
+                        type: "scene",
+                        text: "Go to Library",
+                        sceneId: "library"
+                    }
+                ]
+            },
+            library: {
+                name: "University Library",
+                image: "pictures/pexels-tahir-osman-109306362-31626049.jpg",
+                hotspots: [
+                    {
+                        pitch: -9,
+                        yaw: 45,
+                        type: "scene",
+                        text: "Return to Quad",
+                        sceneId: "mainQuad"
+                    }
+                ]
+            }
+        };
+
+        const viewer = pannellum.viewer('panorama-container', {
+            "default": {
+                "firstScene": "mainQuad",
+                "sceneFadeDuration": 1000,
+                "autoLoad": true
+            },
+            "scenes": Object.fromEntries(
+                Object.entries(scenes).map(([key, scene]) => [
+                    key,
+                    {
+                        "type": "equirectangular",
+                        "panorama": scene.image,
+                        "hotSpots": scene.hotspots
+                    }
+                ]))
+        });
+
+        // Scene navigation
+        function updateSceneName() {
+            document.getElementById('sceneName').textContent = scenes[viewer.getScene()].name;
+        }
+
+        function nextScene() {
+            const sceneKeys = Object.keys(scenes);
+            const currentIndex = sceneKeys.indexOf(viewer.getScene());
+            const nextIndex = (currentIndex + 1) % sceneKeys.length;
+            viewer.loadScene(sceneKeys[nextIndex]);
+            updateSceneName();
+        }
+
+        function prevScene() {
+            const sceneKeys = Object.keys(scenes);
+            const currentIndex = sceneKeys.indexOf(viewer.getScene());
+            const prevIndex = (currentIndex - 1 + sceneKeys.length) % sceneKeys.length;
+            viewer.loadScene(sceneKeys[prevIndex]);
+            updateSceneName();
+        }
+
+        // Update scene name on load
+        viewer.on('load', updateSceneName);
+    </script>
+</body>
+</html>
